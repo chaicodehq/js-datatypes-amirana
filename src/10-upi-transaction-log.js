@@ -48,4 +48,76 @@
  */
 export function analyzeUPITransactions(transactions) {
   // Your code here
+
+  if (!Array.isArray(transactions)) return null;
+
+  const validTransactions = transactions.filter((item) => item.amount > 0 && typeof (item.amount) === 'number' && (item.type === 'credit' || item.type === 'debit'));
+
+  if(validTransactions.length === 0) return null;
+
+  const credit = validTransactions.filter((transaction) => transaction.type === 'credit')
+
+  const debit = validTransactions.filter((transaction) => transaction.type === 'debit')
+
+  const totalCredit = credit.reduce((sum, credit) => sum + credit.amount, 0)
+
+  const totalDebit = debit.reduce((sum, debit) => sum + debit.amount, 0)
+
+  const netBalance = totalCredit - totalDebit;
+
+  const transactionCount = validTransactions.length;
+
+  const avgTransaction = Math.round((totalCredit + totalDebit) / transactionCount);
+
+  const highestAmount = Math.max(...validTransactions.map(transaction => transaction.amount));
+
+  const highestTransaction = validTransactions.find((transaction) => transaction.amount === highestAmount);
+
+  const categoryBreakdown = validTransactions.reduce((acc, transaction) => {
+    const category = transaction.category;
+
+    if (acc[category]) {
+      acc[category] += transaction.amount;
+    } else {
+      acc[category] = transaction.amount;
+    }
+    return acc;
+
+  }, {});
+
+  const contactCount = validTransactions.reduce((acc, transactions) => {
+    const contact = transactions.to;
+    acc[contact] = (acc[contact] || 0) + 1;
+    return acc
+  },  {});
+  
+  const contactEntries = Object.entries(contactCount);
+  
+  const frequentContact = contactEntries.reduce((max, current) => {
+    const [contact, count] = current;
+    
+    if (count > max.count) {
+      return {contact, count}
+    }
+
+    return max;
+  }, {contact: null, count: 0}).contact;
+
+  const allAbove100 = validTransactions.every((transaction) => transaction.amount > 100)
+
+  const hasLargeTransaction = validTransactions.some((transaction) => transaction.amount >= 5000);
+
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    avgTransaction,
+    transactionCount,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact,
+    allAbove100,
+    hasLargeTransaction
+  }
+
 }

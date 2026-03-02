@@ -29,4 +29,23 @@
  */
 export function maskAadhaar(aadhaarNumber) {
   // Your code here
+
+  if (typeof aadhaarNumber !== 'string') {
+    return "INVALID";
+  }
+
+  if (aadhaarNumber.length !== 12) {
+    return "INVALID";
+  }
+
+  if (!/^\d+$/.test(aadhaarNumber)) {
+    return "INVALID"
+  }
+
+  const replacement = 'XXXX-';
+  const slicedAadhar = aadhaarNumber.slice(8);
+  const newAadhar = replacement.repeat(2) + slicedAadhar;
+
+  return newAadhar;
+  
 }

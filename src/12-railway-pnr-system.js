@@ -71,49 +71,92 @@
  *   //      passengers: [...], summary: { ..., allConfirmed: true }, chartPrepared: true }
  */
 export function processRailwayPNR(pnrData) {
-  if (!pnrData || typeof pnrData !== 'object') return null;
-  if (typeof pnrData.pnr !== 'string') return null;
-  if (pnrData.pnr.length !== 10 || !/^\d{10}$/.test(pnrData.pnr)) return null;
-  if (!pnrData.train || typeof pnrData.train !== 'object') return null;
-  if (!Array.isArray(pnrData.passengers) || pnrData.passengers.length === 0) return null;
+  if (typeof pnrData !== 'object' || pnrData === null) return null;
 
-  const pnrFormatted = pnrData.pnr.slice(0, 3) + "-"
-    + pnrData.pnr.slice(3, 6) + "-"
-    + pnrData.pnr.slice(6);
+  if (typeof pnrData.pnr !== 'string' || pnrData.pnr.length !== 10) return null;
 
-  const { number, name, from, to } = pnrData.train;
-  const trainInfo = `Train: ${number} - ${name} | ${from} → ${to} | Class: ${pnrData.classBooked}`;
+  for (let i = 0; i < pnrData.pnr.length; i++) {
+    const char = pnrData.pnr[i];
+    if (char < '0' || char > '9') {
+      return null;
+    }
+  }
 
-  const passengers = pnrData.passengers.map(p => {
+  if (typeof pnrData.train !== 'object') return null;
+
+  if(!Array.isArray(pnrData.passengers) || pnrData
+.passengers.length === 0) return null;
+
+
+  let pnrPart1 = pnrData.pnr.slice(0, 3);
+  let pnrPart2 = pnrData.pnr.slice(3, 6);
+  let pnrPart3 = pnrData.pnr.slice(6);
+
+  const pnrFormatted = pnrPart1 + '-' + pnrPart2 + '-' + pnrPart3;
+
+
+  const processedPassengers = pnrData.passengers.map((passenger) => {
+    const formattedName = passenger.name.padEnd(20) + '(' + passenger.age + '/' + passenger.gender + ')';
+
+    const bookingStatus = passenger.booking;
+    const currentStatus = passenger.current;
+
     let statusLabel;
-    if (p.current === "CAN") statusLabel = "CANCELLED";
-    else if (p.current.startsWith("WL")) statusLabel = "WAITING";
-    else if (p.current.startsWith("RAC")) statusLabel = "RAC";
-    else statusLabel = "CONFIRMED";
+    const curr = passenger.current;
+    if (curr.startsWith('B') || curr.startsWith('S')) {
+      statusLabel = 'CONFIRMED'
+    } else if (curr.startsWith('WL')) {
+      statusLabel = 'WAITING'
+    } else if (curr === 'CAN') {
+      statusLabel = 'CANCELLED'
+    } else if (curr.startsWith('RAC')) {
+      statusLabel = 'RAC'
+    }
+    
+    const isConfirmed = statusLabel === 'CONFIRMED';
 
     return {
-      formattedName: p.name.padEnd(20) + `(${p.age}/${p.gender})`,
-      bookingStatus: p.booking,
-      currentStatus: p.current,
+      formattedName,
+      bookingStatus,
+      currentStatus,
       statusLabel,
-      isConfirmed: statusLabel === "CONFIRMED"
-    };
-  });
+      isConfirmed
+    }
+  })
 
-  const confirmed = passengers.filter(p => p.statusLabel === "CONFIRMED").length;
-  const waiting = passengers.filter(p => p.statusLabel === "WAITING").length;
-  const cancelled = passengers.filter(p => p.statusLabel === "CANCELLED").length;
-  const rac = passengers.filter(p => p.statusLabel === "RAC").length;
 
-  const summary = {
-    totalPassengers: passengers.length,
-    confirmed, waiting, cancelled, rac,
-    allConfirmed: passengers.every(p => p.isConfirmed),
-    anyWaiting: passengers.some(p => p.statusLabel === "WAITING")
-  };
+  const totalPassengers = processedPassengers.length;
 
-  const nonCancelled = passengers.filter(p => p.statusLabel !== "CANCELLED");
-  const chartPrepared = nonCancelled.every(p => p.isConfirmed);
+  const confirmed = processedPassengers.filter((psngr) => psngr.statusLabel === 'CONFIRMED').length;
 
-  return { pnrFormatted, trainInfo, passengers, summary, chartPrepared };
+  const waiting = processedPassengers.filter((psngr) => psngr.statusLabel === 'WAITING').length;
+
+  const cancelled = processedPassengers.filter((psngr) => psngr.statusLabel === 'CANCELLED').length;
+
+  const rac = processedPassengers.filter((psngr) => psngr.statusLabel === 'RAC').length;
+
+  const allConfirmed = processedPassengers.every((psngr) => psngr.isConfirmed);
+
+  const anyWaiting = processedPassengers.some((psngr) => psngr.statusLabel === 'WAITING')
+ 
+
+  const chartPrepared = processedPassengers.filter((psngr) => psngr.statusLabel !== 'CANCELLED' ).every((psngr) => psngr.statusLabel === 'CONFIRMED')
+
+  const trainInfo = `Train: ${pnrData.train.number} - ${pnrData.train.name} | ${pnrData.train.from} → ${pnrData.train.to} | Class: ${pnrData.classBooked}` 
+
+  return {
+    pnrFormatted,
+    trainInfo,
+    passengers: processedPassengers,
+    summary: {
+      totalPassengers,
+      confirmed,
+      waiting,
+      cancelled,
+      rac,
+      allConfirmed,
+      anyWaiting
+    },
+    chartPrepared,
+  }
 }

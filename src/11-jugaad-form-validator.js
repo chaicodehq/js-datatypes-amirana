@@ -31,7 +31,7 @@
  *
  *   6. state: Use optional chaining (?.) and nullish coalescing (??) -
  *      if state is null/undefined, treat as "". Must be a non-empty string.
- *      Error: "State is required"
+ *      Error: "State is required" 
  *
  *   7. agreeTerms: must be truthy (Boolean(agreeTerms) === true).
  *      Falsy values: 0, "", null, undefined, NaN, false
@@ -63,4 +63,110 @@
  */
 export function validateForm(formData) {
   // Your code here
+
+  const errors = {};
+
+  const name = formData.name;
+  const email = formData.email;
+  const phone = formData.phone;
+  let age = formData.age;
+  const pincode = formData.pincode;
+  const state = formData.state ?? '';
+  const agreeTerms = formData.agreeTerms;
+
+  if (typeof name !== 'string') {
+    errors.name = 'Name must be 2-50 characters' 
+  } else {
+    const trimmedName = name.trim();
+    if (trimmedName.length < 2 || trimmedName.length >50) {
+      errors.name = 'Name must be 2-50 characters' 
+    }
+  }
+
+  let emailInvalid = false;
+
+  if (typeof email !== 'string') {
+    errors.email = 'Invalid email format'
+  } else {
+
+    const firstIndex = email.indexOf('@');
+    const lastIndex = email.lastIndexOf('@');
+
+
+    if(firstIndex === -1) emailInvalid = true;
+
+    if (firstIndex !== lastIndex) emailInvalid = true; 
+
+    if (firstIndex === 0) emailInvalid = true; 
+
+    const dotIndex = email.indexOf('.', firstIndex);
+    if (dotIndex === -1) emailInvalid = true;
+
+    if (dotIndex === firstIndex + 1) emailInvalid = true;
+
+    if (emailInvalid) {
+      errors.email = 'Invalid email format';
+    }
+  }
+
+  let phoneInvalid = false;
+
+  if (typeof phone !== 'string') {
+    phoneInvalid = true;
+  } else {
+    if (phone.length !== 10) phoneInvalid = true;
+
+    if (!phone.startsWith('6') && !phone.startsWith('7') && !phone.startsWith('8') && !phone.startsWith('9')) {
+      phoneInvalid = true;
+    }
+
+    
+    for (let i = 0; i < phone.length;  i++ ) {
+      const char = phone[i];
+      if (char < "0" || char > "9") {
+        phoneInvalid = true;
+        break;
+      }
+    }
+  }
+
+  if (phoneInvalid) {
+    errors.phone = 'Invalid Indian phone number'
+  }
+
+  let ageInvalid = false;
+
+  if (typeof age === 'string') {
+    const trimmedAge = age.trim();
+    age = parseInt(trimmedAge);
+  }
+  if (isNaN(age)) {
+    ageInvalid = true;
+  } else if (!Number.isInteger(age)) {
+    ageInvalid = true;
+  } else if (age < 16 || age > 100) {
+    ageInvalid = true;
+  }
+  
+  if (ageInvalid) {
+    errors.age = 'Age must be an integer between 16 and 100';
+  }
+
+  if (typeof pincode !== 'string' || pincode.length !== 6 || pincode.startsWith('0') || isNaN(pincode)) {
+    errors.pincode = 'Invalid Indian pincode';
+  }
+
+  if (state.trim().length <= 0) {
+    errors.state = 'State is required'
+  }
+
+  if (!agreeTerms) {
+    errors.agreeTerms = 'Must agree to terms';
+  }
+
+  const isValid = Object.keys(errors).length === 0;
+  
+  return {
+    isValid, errors
+  }
 }
