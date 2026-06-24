@@ -32,29 +32,25 @@
 export function fixBollywoodTitle(title) {
   // Your code here
 
-  if (typeof title !== 'string') {
-    return '';
-  }
+  if (typeof title !== 'string' || title.trim() === '') return ""
 
-  const trimmedTitle = title.trim();
+  const articles = ["ka", "ki", "ke", "se", "aur", "ya", "the", "of", "in", "a", "an"]
 
-  if (trimmedTitle === '') {
-    return '';
-  }
+  const trimmedTitle = title.trim()
 
-  let articles = ['ka', 'ki', 'ke', 'se', 'aur', 'ya', 'the', 'of', 'in', 'a', 'in'];
-
-  
-  const lowerTitle = trimmedTitle.toLowerCase().split(/\s+/);
-  const capTitle = lowerTitle.map(function (word, index) {
+  const newTitle = trimmedTitle.split(/\s+/).map((title, index) => {
     if (index === 0) {
-      return word.charAt(0).toUpperCase() + word.slice(1)
+      return title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()
     }
-    if (articles.includes(word)) {
-      return word
-    } 
-    return word.charAt(0).toUpperCase() + word.slice(1)
-  });
 
-  return capTitle.join(" ");
+    if (articles.includes(title)) {
+      return title
+    }
+
+    return title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()
+
+  }).join(" ");
+
+
+  return newTitle;
 }

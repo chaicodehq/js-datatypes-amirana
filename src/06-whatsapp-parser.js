@@ -40,34 +40,31 @@
  */
 export function parseWhatsAppMessage(message) {
   // Your code here
-  if (typeof message !== "string") {
-    return null;
-  }
+  if (typeof message !== "string") return null;
 
-  const commaIndex = message.indexOf(", ");
+  const commaIndex = message.indexOf(", ")
 
-  if (commaIndex === -1) {
-    return null;
-  }
+  if (commaIndex === -1) return null;
 
   const date = message.slice(0, commaIndex);
 
+  // time
   const timeStarts = commaIndex + 2;
-  const dashIndex = message.indexOf(" - ");
+  const spaceDashIndex = message.indexOf(" - ", timeStarts)
 
-  if (dashIndex === -1) {
-    return null;
-  }
+  if (spaceDashIndex === -1) return null
 
-  const time = message.slice(timeStarts, dashIndex);
+  const time = message.slice(timeStarts, spaceDashIndex)
 
-  const senderStart = dashIndex + 3;
+  // sender
+  const senderStart = spaceDashIndex + 3;
   const colonIndex = message.indexOf(": ", senderStart);
-  if (colonIndex === -1) {
-    return null;
-  }
+
+  if (colonIndex === -1) return null;
+
   const sender = message.slice(senderStart, colonIndex);
 
+  // text
   const textIndex = colonIndex + 2;
   const text = message.slice(textIndex).trim();
 

@@ -48,64 +48,65 @@
  */
 export function buildZomatoOrder(cart, coupon) {
   // Your code here
-  if (!Array.isArray(cart) || cart.length === 0) {
-    return null;
-  }
+  if (!Array.isArray(cart) || cart.length === 0) return null;
 
-  const validItems = cart.filter(item => item.qty > 0);
+  const validItems = cart.filter(item => item.qty > 0)
 
   if (validItems.length === 0) return null;
 
   const items = validItems.map((item) => {
-  const addonTotal = (item.addons || []).reduce((sum, addon) => {
-  const price = parseFloat(addon.split(":")[1]) || 0;
-  return sum + price;
-  }, 0)
+    const addonTotal = (item.addons || []).reduce((total, addon) => { 
+      const price = parseFloat(addon.split(":")[1]) || 0;
 
-  const itemTotal = (item.price + addonTotal) * item.qty;
+      return total + price
+    }, 0)
 
-  return {
-    name: item.name,
-    qty: item.qty,
-    basePrice: item.price,
-    addonTotal,
-    itemTotal
-    };
-  });
+    const total = (item.price + addonTotal) * item.qty
 
-  const subtotal = items.reduce((sum, item) => sum + item.itemTotal, 0);
+    return {
+      name: item.name,
+      qty: item.qty,
+      basePrice: item.price,
+      addonTotal,
+      itemTotal: total
+    }
+  })
+
+  const subtotal = items.reduce((total, item) => total + item.itemTotal, 0)
 
   let deliveryFee = 0;
-
+  
   if (subtotal < 500) {
     deliveryFee = 30;
-  } else if (subtotal < 1000){
+  } else if (subtotal < 1000) {
     deliveryFee = 15;
+  } else {
+    deliveryFee = 0;
   }
 
   const gst = parseFloat(((subtotal * 5) / 100).toFixed(2));
-  
-  let discount = 0;
-  const discountCode = coupon?.toLowerCase();
 
-  if (discountCode === 'first50') {
+  let discount = 0;
+  const couponCode = coupon?.toLowerCase();
+
+  if (couponCode === 'first50') {
     discount = Math.min(((subtotal * 50) / 100), 150)
-  } else if (discountCode === 'flat100') {
-    discount = 100;
-  } else if (discountCode === 'freeship') {
+  } else if (couponCode === 'flat100') {
+    discount = 100
+  } else if (couponCode === 'freeship') {
     discount = deliveryFee;
     deliveryFee = 0;
   } 
 
-    const grandTotal = parseFloat(Math.max((subtotal + deliveryFee + gst - discount), 0).toFixed(2));
+  const grandTotal = parseFloat(Math.max((subtotal + deliveryFee + gst - discount), 0).toFixed(2));
 
-    return {
-      items,
-      subtotal,
-      deliveryFee,
-      gst,
-      discount,
-      grandTotal
-    }
+  return {
+    items,
+    subtotal,
+    deliveryFee,
+    gst,
+    discount,
+    grandTotal
+  }
 
 }

@@ -49,50 +49,45 @@
 export function analyzeUPITransactions(transactions) {
   // Your code here
 
-  if (!Array.isArray(transactions)) return null;
+  if (!Array.isArray(transactions)) return null
 
-  const validTransactions = transactions.filter((item) => item.amount > 0 && typeof (item.amount) === 'number' && (item.type === 'credit' || item.type === 'debit'));
+  const validTransaction = transactions.filter((transaction) => transaction.amount > 0 && typeof transaction.amount === 'number' && (transaction.type === 'credit' || transaction.type === 'debit'))
 
-  if(validTransactions.length === 0) return null;
+  if (!validTransaction || validTransaction.length === 0) return null
 
-  const credit = validTransactions.filter((transaction) => transaction.type === 'credit')
+  const totalCredit = validTransaction.filter(transaction => transaction.type === 'credit').reduce((total, transaction) => total + transaction.amount, 0)
 
-  const debit = validTransactions.filter((transaction) => transaction.type === 'debit')
+  const totalDebit = validTransaction.filter(transaction => transaction.type === 'debit').reduce((total, transaction) => total + transaction.amount, 0)
 
-  const totalCredit = credit.reduce((sum, credit) => sum + credit.amount, 0)
+  const netBalance = totalCredit - totalDebit
 
-  const totalDebit = debit.reduce((sum, debit) => sum + debit.amount, 0)
+  const transactionCount = validTransaction.length
 
-  const netBalance = totalCredit - totalDebit;
+  const avgTransaction = Math.round((totalCredit + totalDebit) / transactionCount)
 
-  const transactionCount = validTransactions.length;
+  const highestAmount = Math.max(...validTransaction.map(transaction => transaction.amount))
 
-  const avgTransaction = Math.round((totalCredit + totalDebit) / transactionCount);
+  const highestTransaction = validTransaction.find(transaction => transaction.amount === highestAmount)
 
-  const highestAmount = Math.max(...validTransactions.map(transaction => transaction.amount));
-
-  const highestTransaction = validTransactions.find((transaction) => transaction.amount === highestAmount);
-
-  const categoryBreakdown = validTransactions.reduce((acc, transaction) => {
-    const category = transaction.category;
+  const categoryBreakdown = validTransaction.reduce((acc, transaction) => {
+    const category = transaction.category
 
     if (acc[category]) {
-      acc[category] += transaction.amount;
+      acc[category] += transaction.amount
     } else {
-      acc[category] = transaction.amount;
+      acc[category] = transaction.amount
     }
-    return acc;
-
-  }, {});
-
-  const contactCount = validTransactions.reduce((acc, transactions) => {
-    const contact = transactions.to;
-    acc[contact] = (acc[contact] || 0) + 1;
     return acc
-  },  {});
-  
-  const contactEntries = Object.entries(contactCount);
-  
+  }, {})
+
+  const contactCount = validTransaction.reduce((acc, transaction) => {
+    const contact = transaction.to
+    acc[contact] = (acc[contact] || 0) + 1
+    return acc
+  }, {})
+
+  const contactEntries = Object.entries(contactCount)
+
   const frequentContact = contactEntries.reduce((max, current) => {
     const [contact, count] = current;
     
@@ -103,9 +98,9 @@ export function analyzeUPITransactions(transactions) {
     return max;
   }, {contact: null, count: 0}).contact;
 
-  const allAbove100 = validTransactions.every((transaction) => transaction.amount > 100)
+  const allAbove100 = validTransaction.every((transaction) => transaction.amount > 100)
 
-  const hasLargeTransaction = validTransactions.some((transaction) => transaction.amount >= 5000);
+  const hasLargeTransaction = validTransaction.some((transaction) => transaction.amount >= 5000);
 
   return {
     totalCredit,
@@ -119,5 +114,4 @@ export function analyzeUPITransactions(transactions) {
     allAbove100,
     hasLargeTransaction
   }
-
 }
